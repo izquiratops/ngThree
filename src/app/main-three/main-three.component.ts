@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
 // Three.js
 import * as THREE from 'three';
@@ -25,9 +25,11 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
   }
 
   scene: THREE.Scene = new THREE.Scene();
-  camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  renderer: THREE.WebGLRenderer;
-  controls: OrbitControls;
+  camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+  renderer: THREE.WebGLRenderer = null;
+  mouse: THREE.Vector2 = new THREE.Vector2(1, 1);
+  raycaster: THREE.Raycaster = new THREE.Raycaster();
+  controls: OrbitControls = null;
   stats: Stats = Stats();
   gui: GUI = new GUI();
 
@@ -39,7 +41,24 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
   }
 
-  private createInstance(input: InstanceObject) {
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(event) {
+    event.preventDefault();
+
+    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  private createInstance(input: InstanceObject): THREE.Group {
     const group = new THREE.Group();
 
     // Color Material Mesh
@@ -54,8 +73,8 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
     group.add(colorMesh);
 
     // Wireframe Mesh
-    const wiremat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-    const wireframeMesh = new THREE.Mesh(input.geometry, wiremat);
+    const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+    const wireframeMesh = new THREE.Mesh(input.geometry, wireframeMat);
     wireframeMesh.name = 'Wireframe';
     wireframeMesh.visible = this.options.Wireframe;
     group.add(wireframeMesh);
@@ -67,22 +86,12 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
     return group
   }
 
-  private resizeRendererToDisplaySize(): boolean {
-    const width = this.canvas.clientWidth;
-    const height = this.canvas.clientHeight;
-    const needResize = this.canvas.width !== width || this.canvas.height !== height;
-    if (needResize) {
-      this.renderer.setSize(width, height, false);
-    }
-
-    return needResize
-  }
-
   private render(): void {
-    if (this.resizeRendererToDisplaySize()) {
-      console.debug('Resizing!');
-      this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-      this.camera.updateProjectionMatrix();
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersection = this.raycaster.intersectObject(this.objects[0].children[0]);
+
+    if (intersection.length > 0) {
+      console.debug('Intersection!', intersection);
     }
 
     this.controls.update();
@@ -92,15 +101,31 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    /**
+     * Setup Canvas + Controls + Camera
+     */
     this.canvas = <HTMLCanvasElement>this.canvasElement.nativeElement;
 
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    // Camera + Controls
-    this.camera.position.set(0, 0, 3);
-    this.controls = new OrbitControls(this.camera, this.canvas);
 
-    // Setup Geometry
+    this.controls = new OrbitControls(this.camera, this.canvas);
+    this.camera.position.set(2, 2, 3);
+    this.camera.lookAt(0, 0, 0);
+
+    // Stats + GUI
+    document.body.appendChild(this.stats.dom);
+
+    this.gui.add(this.options, 'Wireframe').onChange(() => {
+      this.objects.forEach(element => {
+        const found = element.children.find(child => child.name === "Wireframe");
+        found.visible = this.options.Wireframe
+      });
+    });
+
+    /**
+     * Setup Geometry and Lighting
+     */
     const newObj: InstanceObject = {
       geometry: new THREE.BoxGeometry,
       color: 0x44aa88,
@@ -108,21 +133,9 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
     }
     this.objects.push(this.createInstance(newObj));
 
-    // Setup lighting
     const light: THREE.DirectionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
     light.position.set(0, 2, 4);
     this.scene.add(light);
-
-    // Stats
-    document.body.appendChild(this.stats.dom);
-
-    // Top-right panel
-    this.gui.add(this.options, 'Wireframe').onChange(() => {
-      this.objects.forEach(element => {
-        const found = element.children.find(child => child.name === "Wireframe");
-        found.visible = this.options.Wireframe
-      });
-    });
 
     requestAnimationFrame(this.render.bind(this));
   }
