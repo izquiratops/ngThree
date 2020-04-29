@@ -2,5 +2,9 @@
   <div class="frame">
     <canvas #canvas></canvas>
   </div>
-  <div class="editor"></div>
+  <div class="editor">
+    <mat-checkbox type="checkbox" [(ngModel)]="checked" (change)="toggleWireframe()">
+      Wireframe
+    </mat-checkbox>
+  </div>
 </div>

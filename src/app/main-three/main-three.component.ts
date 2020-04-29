@@ -30,6 +30,9 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
   stats: Stats = Stats();
   // gui: GUI = new GUI();
 
+  // Angular Sidebar
+  checked = false;
+
   cube: THREE.Mesh;
   line: THREE.Line;
 
@@ -85,11 +88,12 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
 
   private createInstance(geometry): void {
     // Color Material Mesh
-    const material = new THREE.MeshPhongMaterial({
+    const material = new THREE.MeshNormalMaterial({
       wireframe: false,
-      color: 0x555555,
-      specular: 0xffffff,
-      shininess: 50,
+      wireframeLinewidth: 3,
+      // color: 0x555555,
+      // specular: 0xffffff,
+      // shininess: 50,
       polygonOffset: true,
       polygonOffsetFactor: 1,
       polygonOffsetUnits: 1
@@ -136,7 +140,7 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
     // Selection Triangle!!!
     const triangleGeo = new THREE.BufferGeometry();
     triangleGeo.setAttribute('position', new THREE.BufferAttribute( new Float32Array( 4 * 3 ), 3 ));
-    const triangleMat = new THREE.LineBasicMaterial({ color: 0x00FF00, transparent: true });
+    const triangleMat = new THREE.LineBasicMaterial({ color: 0x00FF00, transparent: true, linewidth: 3 });
     this.line = new THREE.Line( triangleGeo, triangleMat );
     this.scene.add(this.line);
 
@@ -147,5 +151,9 @@ export class MainThreeComponent implements OnInit, AfterViewInit {
     this.createInstance(new THREE.BoxBufferGeometry());
 
     requestAnimationFrame(this.render.bind(this));
+  }
+
+  toggleWireframe() {
+    (this.cube.material as THREE.MeshNormalMaterial).wireframe = this.checked;
   }
 }
