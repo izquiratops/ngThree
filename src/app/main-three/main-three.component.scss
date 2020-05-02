@@ -7,19 +7,6 @@
   height: 100%;
 }
 
-.wrapper>* {
+.wrapper > * {
   flex: 1 1 auto;
-}
-
-.editor {
-  font-family: monospace;
-  padding: .5em;
-  background: #222;
-  color: white;
-  width: 380px;
-}
-
-canvas {
-  width: 100%;
-  height: 100%;
 }

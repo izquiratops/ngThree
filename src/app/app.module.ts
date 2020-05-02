@@ -9,10 +9,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+import { SideBarComponent } from './main-three/side-bar/side-bar.component';
+import { ViewportComponent } from './main-three/viewport/viewport.component';
+
 @NgModule({
   declarations: [
     AppComponent,
-    MainThreeComponent
+    MainThreeComponent,
+    SideBarComponent,
+    ViewportComponent
   ],
   imports: [
     BrowserModule,
