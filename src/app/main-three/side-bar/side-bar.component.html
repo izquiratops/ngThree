@@ -1,5 +1,14 @@
 <div class="editor">
-  <mat-checkbox type="checkbox" [(ngModel)]="checked" (change)="toggleWireframe()">
-    Wireframe
-  </mat-checkbox>
+  <mat-nav-list>
+    <h2>Object List</h2>
+
+    <!--  TODO: Drag and drop: https://material.angular.io/cdk/drag-drop/examples
+    -->
+    <mat-list-item *ngFor="let object of objects">
+      <a matLine *ngIf="object.type === 'mesh'">{{ object.mesh.name }}</a>
+      <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object.mesh)">
+        <mat-icon>visibility</mat-icon>
+      </button>
+    </mat-list-item>
+  </mat-nav-list>
 </div>

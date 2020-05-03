@@ -1,8 +1,8 @@
 import {Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit} from '@angular/core';
-import {CoreService} from "../core.service";
-import * as THREE from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import Stats from "three/examples/jsm/libs/stats.module";
+import {CoreService} from '../core.service';
+import * as THREE from 'three';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import Stats from 'three/examples/jsm/libs/stats.module';
 
 @Component({
   selector: 'app-viewport',
@@ -11,21 +11,22 @@ import Stats from "three/examples/jsm/libs/stats.module";
 })
 export class ViewportComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('canvas', { static: false }) canvasElement: ElementRef;
-  canvas:   HTMLCanvasElement;
+  @ViewChild('canvas', {static: false}) canvasElement: ElementRef;
+  canvas: HTMLCanvasElement;
 
-  scene:    THREE.Scene;
-  camera:   THREE.PerspectiveCamera;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
 
-  mouse:      THREE.Vector2;
-  raycaster:  THREE.Raycaster;
-  controls:   OrbitControls;
-  stats:      Stats;
+  mouse: THREE.Vector2;
+  raycaster: THREE.Raycaster;
+  controls: OrbitControls;
+  stats: Stats;
 
   constructor(
     private coreService: CoreService,
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     // Core elements
@@ -44,27 +45,31 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.scene.add(triangle);
     const grid = this.coreService.createGrid();
     this.scene.add(grid);
-    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry());
+    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'InitCube');
     this.scene.add(initCube);
+
+    console.debug('Objects Array', this.coreService.objects);
   }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event) {
     event.preventDefault();
     this.mouse.x = (event.clientX / this.canvas.clientWidth) * 2 - 1;
-    this.mouse.y = - (event.clientY / this.canvas.clientHeight) * 2 + 1;
+    this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
   @HostListener('document:mousedown', [])
   onMouseDown() {
-    const cube = this.coreService.objects[0];
+    // TODO: right now objects[0] is always the 'InitCube'
+    const cube = this.coreService.objects[0].mesh;
+
     const triangle = this.coreService.helperObjects.triangle;
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersection = this.raycaster.intersectObject(cube);
 
     // TODO: Check 'mousedown' only when left-click
     if (intersection.length > 0) {
-      const face = intersection[ 0 ].face;
+      const face = intersection[0].face;
       const linePosition = (triangle.geometry as any).attributes.position;
       const cubePosition = (cube.geometry as any).attributes.position;
 
@@ -73,10 +78,10 @@ export class ViewportComponent implements OnInit, AfterViewInit {
        * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
        * 'applyMatrix4' applies matrix to every Vector3 element.
        */
-      linePosition.copyAt( 0, cubePosition, face.a );
-      linePosition.copyAt( 1, cubePosition, face.b );
-      linePosition.copyAt( 2, cubePosition, face.c );
-      linePosition.copyAt( 3, cubePosition, face.a );
+      linePosition.copyAt(0, cubePosition, face.a);
+      linePosition.copyAt(1, cubePosition, face.b);
+      linePosition.copyAt(2, cubePosition, face.c);
+      linePosition.copyAt(3, cubePosition, face.a);
       triangle.geometry.applyMatrix4(cube.matrix);
 
       // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
@@ -106,7 +111,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
   private render(): void {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    if ( this.canvas.width !== width || this.canvas.height !== height ) {
+    if (this.canvas.width !== width || this.canvas.height !== height) {
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height, false);

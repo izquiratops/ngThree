@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {CoreService} from "../core.service";
-import * as THREE from "three";
+import {CoreService} from '../core.service';
+import * as THREE from 'three';
+import {ItemObjList} from '../interfaces/itemObjList';
 
 @Component({
   selector: 'app-side-bar',
@@ -9,18 +10,18 @@ import * as THREE from "three";
 })
 export class SideBarComponent implements OnInit {
 
-  checked = false;
+  objects: Array<ItemObjList> = [];
 
   constructor(
     private coreService: CoreService,
   ) { }
 
   ngOnInit(): void {
+    this.objects = this.coreService.objects;
   }
 
-  toggleWireframe() {
-    this.coreService.objects.forEach((element) => {
-      (element.material as THREE.MeshNormalMaterial).wireframe = this.checked;
-    });
+  toggleWireframe(mesh: THREE.Mesh) {
+    const currentValue = (mesh.material as THREE.MeshNormalMaterial).wireframe;
+    (mesh.material as THREE.MeshNormalMaterial).wireframe = !currentValue;
   }
 }
