@@ -3,6 +3,25 @@
   padding: 1em;
   background: #222;
   color: white;
+
+  // Size
   height: 100%;
   width: 380px;
+}
+
+.module-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0.2rem 1rem;
+  margin-bottom: 6px;
+  // border: 2px solid white;
+  border-radius: 4px;
+  cursor: move;
+
+  p {
+    margin: 0;
+  }
 }

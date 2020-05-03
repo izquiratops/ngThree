@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import {CoreService} from '../core.service';
+import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as THREE from 'three';
+
+import {CoreService} from '../core.service';
 import {ItemObjList} from '../interfaces/itemObjList';
 
 @Component({
@@ -18,6 +20,14 @@ export class SideBarComponent implements OnInit {
 
   ngOnInit(): void {
     this.objects = this.coreService.objects;
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.objects, event.previousIndex, event.currentIndex);
+  }
+
+  editName(mesh: THREE.Mesh) {
+    (mesh.material as THREE.MeshNormalMaterial).name = 'woo';
   }
 
   toggleWireframe(mesh: THREE.Mesh) {

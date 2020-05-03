@@ -45,8 +45,14 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.scene.add(triangle);
     const grid = this.coreService.createGrid();
     this.scene.add(grid);
-    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'InitCube');
+
+    // Just for testing purposes !!!
+    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'First Cube');
+    initCube.translateX(-0.75);
     this.scene.add(initCube);
+    const initCube2 = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Second Cube');
+    initCube2.translateX(0.75);
+    this.scene.add(initCube2);
 
     console.debug('Objects Array', this.coreService.objects);
   }

@@ -1,14 +1,18 @@
 <div class="editor">
-  <mat-nav-list>
-    <h2>Object List</h2>
-
-    <!--  TODO: Drag and drop: https://material.angular.io/cdk/drag-drop/examples
-    -->
-    <mat-list-item *ngFor="let object of objects">
-      <a matLine *ngIf="object.type === 'mesh'">{{ object.mesh.name }}</a>
-      <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object.mesh)">
-        <mat-icon>visibility</mat-icon>
-      </button>
-    </mat-list-item>
-  </mat-nav-list>
+  <h2>Object List</h2>
+  <!--  Drag & Drop object list  -->
+  <div class="object-list" cdkDropList (cdkDropListDropped)="drop($event)">
+    <div class="module-box" *ngFor="let object of objects" cdkDrag>
+      <div class="item-object-list" *cdkDragPlaceholder></div>
+      <p>{{object.mesh.name}}</p>
+      <div id="right-buttons">
+        <button mat-icon-button aria-label="Edit Name" (click)="editName(object.mesh)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object.mesh)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
