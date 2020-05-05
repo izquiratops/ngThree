@@ -1,7 +1,7 @@
-import { Mesh } from 'three';
+import {Mesh} from 'three';
 
 export interface ItemObjList {
-    mesh: Mesh;
+  mesh: Mesh;
   /**
    * Type of objects:
    * - Mesh

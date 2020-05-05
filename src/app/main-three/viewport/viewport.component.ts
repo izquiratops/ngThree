@@ -64,35 +64,39 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
-  @HostListener('document:mousedown', [])
-  onMouseDown() {
-    // TODO: right now objects[0] is always the 'InitCube'
-    const cube = this.coreService.objects[0].mesh;
+  @HostListener('document:mousedown', ['$event'])
+  onMouseDown(event) {
+    if (event.button === 0) {
+      // Triangle obj which show the selected Face
+      const triangle = this.coreService.helperObjects.triangle;
 
-    const triangle = this.coreService.helperObjects.triangle;
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersection = this.raycaster.intersectObject(cube);
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const objects = this.coreService.objects.map(element => element.mesh);
+      const intersections = this.raycaster.intersectObjects(objects);
+      console.debug('intersections', intersections);
 
-    // TODO: Check 'mousedown' only when left-click
-    if (intersection.length > 0) {
-      const face = intersection[0].face;
-      const linePosition = (triangle.geometry as any).attributes.position;
-      const cubePosition = (cube.geometry as any).attributes.position;
+      if (intersections.length > 0) {
+        const object = intersections[0].object;
+        const face = intersections[0].face;
 
-      /**
-       * https://threejs.org/docs/#api/en/core/BufferAttribute
-       * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
-       * 'applyMatrix4' applies matrix to every Vector3 element.
-       */
-      linePosition.copyAt(0, cubePosition, face.a);
-      linePosition.copyAt(1, cubePosition, face.b);
-      linePosition.copyAt(2, cubePosition, face.c);
-      linePosition.copyAt(3, cubePosition, face.a);
-      triangle.geometry.applyMatrix4(cube.matrix);
+        const trianglePosition = (triangle.geometry as any).attributes.position;
+        const objectPosition = (object as any).geometry.attributes.position;
 
-      // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
-      // this.cube.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.5));
-      triangle.visible = true;
+        /**
+         * https://threejs.org/docs/#api/en/core/BufferAttribute
+         * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
+         * 'applyMatrix4' applies matrix to every Vector3 element.
+         */
+        trianglePosition.copyAt(0, objectPosition, face.a);
+        trianglePosition.copyAt(1, objectPosition, face.b);
+        trianglePosition.copyAt(2, objectPosition, face.c);
+        trianglePosition.copyAt(3, objectPosition, face.a);
+        triangle.geometry.applyMatrix4(object.matrix);
+
+        // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
+        // this.cube.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.5));
+        triangle.visible = true;
+      }
     }
   }
 
@@ -110,6 +114,13 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.camera.position.set(2, 2, 3);
     this.camera.lookAt(0, 0, 0);
+
+    // TODO: Sprites Testing
+    // https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
+    // const spritey = makeTextSprite( 'Henlo :)',
+    //   { fontsize: 24, borderColor: {r: 255, g: 0, b: 0, a: 1.0}, backgroundColor: {r: 255, g: 100, b: 100, a: 0.8}} );
+    // spritey.position.set(-85, 105, 55);
+    // this.scene.add( spritey );
 
     requestAnimationFrame(this.render.bind(this));
   }

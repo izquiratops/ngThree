@@ -1,10 +1,13 @@
 <div class="editor">
   <h2>Object List</h2>
   <!--  Drag & Drop object list  -->
-  <div class="object-list" cdkDropList (cdkDropListDropped)="drop($event)">
-    <div class="module-box" *ngFor="let object of objects" cdkDrag>
-      <div class="item-object-list" *cdkDragPlaceholder></div>
+  <div class="example-list" cdkDropList (cdkDropListDropped)="drop($event)">
+    <div class="example-box" *ngFor="let object of objects" cdkDrag>
+
+      <!-- TODO: Get this into a Component -->
+      <!-- Object Item -->
       <p>{{object.mesh.name}}</p>
+
       <div id="right-buttons">
         <button mat-icon-button aria-label="Edit Name" (click)="editName(object.mesh)">
           <mat-icon>edit</mat-icon>
@@ -13,6 +16,8 @@
           <mat-icon>visibility</mat-icon>
         </button>
       </div>
+      <!-- --- -x- --- -->
+
     </div>
   </div>
 </div>
