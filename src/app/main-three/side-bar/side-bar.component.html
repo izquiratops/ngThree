@@ -5,18 +5,25 @@
     <div class="example-box" *ngFor="let object of objects" cdkDrag>
 
       <!-- TODO: Get this into a Component -->
-      <!-- Object Item -->
       <input [value]=object.mesh.name>
-
-      <!-- Editable from <input>
-      <button mat-icon-button aria-label="Edit Name" (click)="editName(object.mesh)">
-        <mat-icon>edit</mat-icon>
-      </button> -->
       <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object.mesh)">
-        <mat-icon [ngClass]="{'disabled-icon': object.mesh.material.wireframe}">visibility</mat-icon>
+        <mat-icon [ngClass]="{'disabled-icon': !object.mesh.visible}">visibility</mat-icon>
       </button>
-      <!-- --- -x- --- -->
 
+      <!-- --- -x- --- -->
     </div>
+  </div>
+
+  <div class="bottom-tools">
+    <mat-form-field>
+      <mat-label>Selection Type</mat-label>
+<!--      TODO: This doesn't select at all :) -->
+      <mat-select>
+        <mat-option *ngFor="let type of selectionTypes" [value]="type">
+<!--          Maybe this could be done with CSS -->
+          {{type.charAt(0).toUpperCase() + type.slice(1)}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 </div>

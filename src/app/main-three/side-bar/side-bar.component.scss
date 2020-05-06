@@ -4,6 +4,13 @@
   color: white;
   height: 100%;
   width: 380px;
+
+  display: flex;
+  flex-flow: column nowrap;
+
+  // mat-option::first-letter {
+  //    text-transform: uppercase;
+  // }
 }
 
 .example-list {
@@ -34,6 +41,12 @@
     border: none;
     outline: none;
   }
+}
+
+.bottom-tools {
+  display: flex;
+  align-self: flex-end;
+  margin-top: auto;
 }
 
 .disabled-icon {

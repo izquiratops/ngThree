@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import {CoreService} from '../core.service';
 import {ItemObjList} from '../interfaces/itemObjList';
+import {SelectionTypes} from '../interfaces/selectionTypes';
 
 @Component({
   selector: 'app-side-bar',
@@ -13,6 +14,8 @@ import {ItemObjList} from '../interfaces/itemObjList';
 export class SideBarComponent implements OnInit {
 
   objects: Array<ItemObjList> = [];
+  selectionType: string;
+  selectionTypes: string[] = ['vertex', 'edge', 'face', 'mesh'];
 
   constructor(
     private coreService: CoreService,
@@ -20,6 +23,7 @@ export class SideBarComponent implements OnInit {
 
   ngOnInit(): void {
     this.objects = this.coreService.objects;
+    this.selectionType = this.coreService.options.selectionType;
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -27,8 +31,8 @@ export class SideBarComponent implements OnInit {
   }
 
   // TODO: Add Outline Selection from https://stemkoski.github.io/Three.js/Outline.html
-  toggleWireframe(mesh: THREE.Mesh) {
-    const currentValue = (mesh.material as THREE.MeshNormalMaterial).wireframe;
-    (mesh.material as THREE.MeshNormalMaterial).wireframe = !currentValue;
+  toggleWireframe(mesh: THREE.Mesh): void {
+    const currentValue = mesh.visible;
+    mesh.visible = !currentValue;
   }
 }

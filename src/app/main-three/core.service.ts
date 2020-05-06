@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import {ItemObjList} from './interfaces/itemObjList';
 import {HelperObjects} from './interfaces/helperObjects';
-import {Subject} from 'rxjs';
 
 enum objectType {
   mesh = 'mesh',
@@ -15,13 +14,13 @@ enum objectType {
 })
 export class CoreService {
   options = {
+    selectionType: 'face',
     wireframe: true,
     wireframeColor: 0x00FF00,
     wireframeLinewidth: 3,
   };
 
   objects: Array<ItemObjList> = [];
-  // objects$: Subject<Array<ItemObjList>> = new Subject<Array<ItemObjList>>();
   helperObjects: HelperObjects = {
     triangle: null,
     grid: null,

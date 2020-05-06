@@ -50,7 +50,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     initCube.translateX(-0.75);
     this.scene.add(initCube);
 
-    // TODO: Get rid of this... Just for testing purposes !!!
+    // Testing second cube. TODO: Get rid of this
     setTimeout(() => {
       const initCube2 = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Second Cube');
       initCube2.translateX(0.75);
@@ -60,6 +60,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     console.debug('Objects Array', this.coreService.objects);
   }
 
+  // TODO: Mouse Events should be triggered on Canvas!!!
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event) {
     event.preventDefault();
@@ -70,41 +71,53 @@ export class ViewportComponent implements OnInit, AfterViewInit {
   @HostListener('document:mousedown', ['$event'])
   onMouseDown(event) {
     if (event.button === 0) {
-      // Triangle obj which show the selected Face
-      const triangle = this.coreService.helperObjects.triangle;
+      switch (this.coreService.options.selectionType) {
+        case 'vertex':
+          console.debug('Vertex selection case');
+          break;
+        case 'edge':
+          console.debug('Edge selection case');
+          break;
+        case 'face':
+          // Triangle obj which show the selected Face
+          const triangle = this.coreService.helperObjects.triangle;
 
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      const objects = this.coreService.objects.map(element => element.mesh);
-      const intersections = this.raycaster.intersectObjects(objects);
-      console.debug('intersections', intersections);
+          this.raycaster.setFromCamera(this.mouse, this.camera);
+          const objects = this.coreService.objects.map(element => element.mesh);
+          const intersections = this.raycaster.intersectObjects(objects);
+          console.debug('Intersections', intersections);
 
-      if (intersections.length > 0) {
-        const object = intersections[0].object;
-        const face = intersections[0].face;
+          if (intersections.length > 0) {
+            const object = intersections[0].object;
+            const face = intersections[0].face;
 
-        const trianglePosition = (triangle.geometry as any).attributes.position;
-        const objectPosition = (object as any).geometry.attributes.position;
+            const trianglePosition = (triangle.geometry as any).attributes.position;
+            const objectPosition = (object as any).geometry.attributes.position;
 
-        /**
-         * https://threejs.org/docs/#api/en/core/BufferAttribute
-         * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
-         * 'applyMatrix4' applies matrix to every Vector3 element.
-         */
-        trianglePosition.copyAt(0, objectPosition, face.a);
-        trianglePosition.copyAt(1, objectPosition, face.b);
-        trianglePosition.copyAt(2, objectPosition, face.c);
-        trianglePosition.copyAt(3, objectPosition, face.a);
-        triangle.geometry.applyMatrix4(object.matrix);
+            /**
+             * https://threejs.org/docs/#api/en/core/BufferAttribute
+             * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
+             * 'applyMatrix4' applies matrix to every Vector3 element.
+             */
+            trianglePosition.copyAt(0, objectPosition, face.a);
+            trianglePosition.copyAt(1, objectPosition, face.b);
+            trianglePosition.copyAt(2, objectPosition, face.c);
+            trianglePosition.copyAt(3, objectPosition, face.a);
+            triangle.geometry.applyMatrix4(object.matrix);
 
-        // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
-        // this.cube.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.5));
-        triangle.visible = true;
+            triangle.visible = true;
+          }
+          break;
+        case 'object':
+          console.debug('Object selection case');
+          break;
       }
     }
   }
 
-  @HostListener('document:keydown.a', ['$event']) onKeydownHandler(event: KeyboardEvent) {
-    // TODO: Unselect
+  @HostListener('document:keydown.a', [])
+  onKeydownHandler() {
+    // TODO: There's no such a thing like selection implemented yet, just a sad sad triangle
     const triangle = this.coreService.helperObjects.triangle;
     triangle.visible = false;
   }
@@ -124,7 +137,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.camera.position.set(2, 2, 3);
     this.camera.lookAt(0, 0, 0);
 
-    // TODO: Sprites Testing
+    // TODO: Do Sprites!
     // https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
     // const spritey = makeTextSprite( 'Henlo :)',
     //   { fontsize: 24, borderColor: {r: 255, g: 0, b: 0, a: 1.0}, backgroundColor: {r: 255, g: 100, b: 100, a: 0.8}} );
@@ -133,6 +146,10 @@ export class ViewportComponent implements OnInit, AfterViewInit {
 
     requestAnimationFrame(this.render.bind(this));
   }
+
+  // TODO: Transforms like Translation
+  // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
+  // this.cube.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.5));
 
   private render(): void {
     const width = this.canvas.clientWidth;
