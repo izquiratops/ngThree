@@ -26,13 +26,7 @@ export class SideBarComponent implements OnInit {
     moveItemInArray(this.objects, event.previousIndex, event.currentIndex);
   }
 
-  // TODO: This doesn't change (sadly), probably because we are getting the reference but it's not pushed 'asyncly'
-  editName(mesh: THREE.Mesh) {
-    (mesh.material as THREE.MeshNormalMaterial).name = 'woo';
-  }
-
   // TODO: Add Outline Selection from https://stemkoski.github.io/Three.js/Outline.html
-
   toggleWireframe(mesh: THREE.Mesh) {
     const currentValue = (mesh.material as THREE.MeshNormalMaterial).wireframe;
     (mesh.material as THREE.MeshNormalMaterial).wireframe = !currentValue;

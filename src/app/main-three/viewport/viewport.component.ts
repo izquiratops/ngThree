@@ -46,13 +46,16 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     const grid = this.coreService.createGrid();
     this.scene.add(grid);
 
-    // Just for testing purposes !!!
     const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'First Cube');
     initCube.translateX(-0.75);
     this.scene.add(initCube);
-    const initCube2 = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Second Cube');
-    initCube2.translateX(0.75);
-    this.scene.add(initCube2);
+
+    // TODO: Get rid of this... Just for testing purposes !!!
+    setTimeout(() => {
+      const initCube2 = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Second Cube');
+      initCube2.translateX(0.75);
+      this.scene.add(initCube2);
+    }, 5000);
 
     console.debug('Objects Array', this.coreService.objects);
   }
@@ -98,6 +101,12 @@ export class ViewportComponent implements OnInit, AfterViewInit {
         triangle.visible = true;
       }
     }
+  }
+
+  @HostListener('document:keydown.a', ['$event']) onKeydownHandler(event: KeyboardEvent) {
+    // TODO: Unselect
+    const triangle = this.coreService.helperObjects.triangle;
+    triangle.visible = false;
   }
 
   ngAfterViewInit(): void {

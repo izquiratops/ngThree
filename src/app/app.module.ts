@@ -12,6 +12,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+// import { MatInputModule } from '@angular/material/input';
 
 import { SideBarComponent } from './main-three/side-bar/side-bar.component';
 import { ViewportComponent } from './main-three/viewport/viewport.component';
@@ -32,7 +33,8 @@ import { ViewportComponent } from './main-three/viewport/viewport.component';
     DragDropModule,
     MatListModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    // MatInputModule
   ],
   exports: [],
   providers: [],

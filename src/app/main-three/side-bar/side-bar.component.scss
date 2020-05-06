@@ -16,7 +16,7 @@
 
 .example-box {
   display: flex;
-  flex-direction: row;
+  flex-flow: row nowrap;
   align-items: center;
   justify-content: space-between;
 
@@ -27,14 +27,25 @@
   margin-bottom: 6px;
   border-radius: 4px;
 
-  p {
-    margin: 0;
+  input {
+    margin-right: 1rem;
+    background-color: rgba(0, 0, 0, 0);
+    color: white;
+    border: none;
+    outline: none;
   }
+}
+
+.disabled-icon {
+  color: #333;
 }
 
 .cdk-drag-preview {
   color: black;
   background-color: white;
+  input {
+    color: black;
+  }
 
   box-sizing: border-box;
   border-radius: 4px;
