@@ -1,3 +1,4 @@
 <div class="frame">
-  <canvas #canvas></canvas>
+<!--  https://javascript.info/mouse-events-basics-->
+  <canvas #canvas (mousedown)="onMouseDown($event)" (mousemove)="onMouseMove($event)"></canvas>
 </div>

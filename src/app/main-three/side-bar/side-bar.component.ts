@@ -13,8 +13,8 @@ import {SelectionTypes} from '../interfaces/selectionTypes';
 })
 export class SideBarComponent implements OnInit {
 
-  objects: Array<ItemObjList> = [];
-  selectionType: string;
+  objects: ItemObjList[] = this.coreService.objects;
+  selectionType = this.coreService.options.selectionType;
   selectionTypes: string[] = ['vertex', 'edge', 'face', 'mesh'];
 
   constructor(
@@ -22,8 +22,10 @@ export class SideBarComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.objects = this.coreService.objects;
-    this.selectionType = this.coreService.options.selectionType;
+  }
+
+  onChange(event) {
+    this.coreService.options.selectionType = event;
   }
 
   drop(event: CdkDragDrop<string[]>) {

@@ -17,10 +17,8 @@
   <div class="bottom-tools">
     <mat-form-field>
       <mat-label>Selection Type</mat-label>
-<!--      TODO: This doesn't select at all :) -->
-      <mat-select>
+      <mat-select [value]="selectionType" (valueChange)="onChange($event)">
         <mat-option *ngFor="let type of selectionTypes" [value]="type">
-<!--          Maybe this could be done with CSS -->
           {{type.charAt(0).toUpperCase() + type.slice(1)}}
         </mat-option>
       </mat-select>

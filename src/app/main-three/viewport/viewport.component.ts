@@ -60,56 +60,69 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     console.debug('Objects Array', this.coreService.objects);
   }
 
-  // TODO: Mouse Events should be triggered on Canvas!!!
-  @HostListener('document:mousemove', ['$event'])
   onMouseMove(event) {
     event.preventDefault();
     this.mouse.x = (event.clientX / this.canvas.clientWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
-  @HostListener('document:mousedown', ['$event'])
+  selectingVertex(): void {
+    console.debug('Vertex selection case');
+  }
+
+  selectingEdge(): void {
+    console.debug('Edge selection case');
+  }
+
+  selectingFace(): void {
+    // Triangle obj which show the selected Face
+    const triangle = this.coreService.helperObjects.triangle;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const objects = this.coreService.objects.map(element => element.mesh);
+    const intersections = this.raycaster.intersectObjects(objects);
+    console.debug('Intersections', intersections);
+
+    if (intersections.length > 0) {
+      const object = intersections[0].object;
+      const face = intersections[0].face;
+
+      const trianglePosition = (triangle.geometry as any).attributes.position;
+      const objectPosition = (object as any).geometry.attributes.position;
+
+      /**
+       * https://threejs.org/docs/#api/en/core/BufferAttribute
+       * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
+       * 'applyMatrix4' applies matrix to every Vector3 element.
+       */
+      trianglePosition.copyAt(0, objectPosition, face.a);
+      trianglePosition.copyAt(1, objectPosition, face.b);
+      trianglePosition.copyAt(2, objectPosition, face.c);
+      trianglePosition.copyAt(3, objectPosition, face.a);
+      triangle.geometry.applyMatrix4(object.matrix);
+
+      triangle.visible = true;
+    }
+  }
+
+  selectingMesh(): void {
+    console.debug('Object selection case');
+  }
+
   onMouseDown(event) {
     if (event.button === 0) {
       switch (this.coreService.options.selectionType) {
         case 'vertex':
-          console.debug('Vertex selection case');
+          this.selectingVertex();
           break;
         case 'edge':
-          console.debug('Edge selection case');
+          this.selectingEdge();
           break;
         case 'face':
-          // Triangle obj which show the selected Face
-          const triangle = this.coreService.helperObjects.triangle;
-
-          this.raycaster.setFromCamera(this.mouse, this.camera);
-          const objects = this.coreService.objects.map(element => element.mesh);
-          const intersections = this.raycaster.intersectObjects(objects);
-          console.debug('Intersections', intersections);
-
-          if (intersections.length > 0) {
-            const object = intersections[0].object;
-            const face = intersections[0].face;
-
-            const trianglePosition = (triangle.geometry as any).attributes.position;
-            const objectPosition = (object as any).geometry.attributes.position;
-
-            /**
-             * https://threejs.org/docs/#api/en/core/BufferAttribute
-             * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
-             * 'applyMatrix4' applies matrix to every Vector3 element.
-             */
-            trianglePosition.copyAt(0, objectPosition, face.a);
-            trianglePosition.copyAt(1, objectPosition, face.b);
-            trianglePosition.copyAt(2, objectPosition, face.c);
-            trianglePosition.copyAt(3, objectPosition, face.a);
-            triangle.geometry.applyMatrix4(object.matrix);
-
-            triangle.visible = true;
-          }
+          this.selectingFace();
           break;
         case 'object':
-          console.debug('Object selection case');
+          this.selectingMesh();
           break;
       }
     }
@@ -117,7 +130,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
 
   @HostListener('document:keydown.a', [])
   onKeydownHandler() {
-    // TODO: There's no such a thing like selection implemented yet, just a sad sad triangle
+    // TODO: There's no such a thing like 'selection' implemented yet, just a sad sad triangle
     const triangle = this.coreService.helperObjects.triangle;
     triangle.visible = false;
   }
