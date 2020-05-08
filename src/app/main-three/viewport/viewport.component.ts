@@ -1,8 +1,10 @@
 import {Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit} from '@angular/core';
 import {CoreService} from '../core.service';
 import * as THREE from 'three';
+import {CSS2DObject, CSS2DRenderer} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
+import {Vector4} from 'three';
 
 @Component({
   selector: 'app-viewport',
@@ -17,6 +19,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
+  labelRenderer: CSS2DRenderer;
 
   mouse: THREE.Vector2;
   raycaster: THREE.Raycaster;
@@ -41,20 +44,19 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     document.body.appendChild(this.stats.dom);
 
     // Setup Initial Objects
-    const triangle = this.coreService.createTriangle();
-    this.scene.add(triangle);
-    const grid = this.coreService.createGrid();
-    this.scene.add(grid);
+    this.scene.add(this.coreService.createTriangle());
+    this.scene.add(this.coreService.createGrid());
+    this.scene.add(this.coreService.createAxes());
 
-    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'First Cube');
-    initCube.translateX(-0.75);
+    const initTrans = new THREE.Matrix4().makeTranslation(0.75, 0, 0);
+    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Init Cube', initTrans);
     this.scene.add(initCube);
 
-    // Testing second cube. TODO: Get rid of this
+    // Testing async cube.
     setTimeout(() => {
-      const initCube2 = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Second Cube');
-      initCube2.translateX(0.75);
-      this.scene.add(initCube2);
+      const asyncTrans = new THREE.Matrix4().makeTranslation(-0.75, 0, 0);
+      const asyncCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Async Cube', asyncTrans);
+      this.scene.add(asyncCube);
     }, 5000);
 
     console.debug('Objects Array', this.coreService.objects);
@@ -66,64 +68,62 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
-  selectingVertex(): void {
-    console.debug('Vertex selection case');
+  selectingVertex(intersections): void {
+    console.debug('Vertex selection case', intersections);
   }
 
-  selectingEdge(): void {
-    console.debug('Edge selection case');
+  selectingEdge(intersections): void {
+    console.debug('Edge selection case', intersections);
   }
 
-  selectingFace(): void {
+  selectingFace(intersections): void {
     // Triangle obj which show the selected Face
     const triangle = this.coreService.helperObjects.triangle;
+    const object = intersections[0].object;
+    const face = intersections[0].face;
 
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const objects = this.coreService.objects.map(element => element.mesh);
-    const intersections = this.raycaster.intersectObjects(objects);
-    console.debug('Intersections', intersections);
+    const trianglePosition = (triangle.geometry as any).attributes.position;
+    const objectPosition = (object as any).geometry.attributes.position;
 
-    if (intersections.length > 0) {
-      const object = intersections[0].object;
-      const face = intersections[0].face;
+    /**
+     * https://threejs.org/docs/#api/en/core/BufferAttribute
+     * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
+     * 'applyMatrix4' applies matrix to every Vector3 element.
+     */
+    trianglePosition.copyAt(0, objectPosition, face.a);
+    trianglePosition.copyAt(1, objectPosition, face.b);
+    trianglePosition.copyAt(2, objectPosition, face.c);
+    trianglePosition.copyAt(3, objectPosition, face.a);
+    triangle.geometry.applyMatrix4(object.matrix);
 
-      const trianglePosition = (triangle.geometry as any).attributes.position;
-      const objectPosition = (object as any).geometry.attributes.position;
-
-      /**
-       * https://threejs.org/docs/#api/en/core/BufferAttribute
-       * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
-       * 'applyMatrix4' applies matrix to every Vector3 element.
-       */
-      trianglePosition.copyAt(0, objectPosition, face.a);
-      trianglePosition.copyAt(1, objectPosition, face.b);
-      trianglePosition.copyAt(2, objectPosition, face.c);
-      trianglePosition.copyAt(3, objectPosition, face.a);
-      triangle.geometry.applyMatrix4(object.matrix);
-
-      triangle.visible = true;
-    }
+    triangle.visible = true;
   }
 
-  selectingMesh(): void {
-    console.debug('Object selection case');
+  selectingMesh(intersections): void {
+    // const object: THREE.Mesh = intersections[0].object;
+    // const objectPosition = object.position;
+    console.debug('Object selection case', intersections);
   }
 
   onMouseDown(event) {
     if (event.button === 0) {
-      switch (this.coreService.options.selectionType) {
-        case 'vertex':
-          this.selectingVertex();
-          break;
-        case 'edge':
-          this.selectingEdge();
-          break;
-        case 'face':
-          this.selectingFace();
-          break;
-        case 'object':
-          this.selectingMesh();
-          break;
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const intersections = this.raycaster.intersectObjects(this.coreService.objects);
+      if (intersections.length > 0) {
+        switch (this.coreService.options.selectionType) {
+          case 'vertex':
+            this.selectingVertex(intersections);
+            break;
+          case 'edge':
+            this.selectingEdge(intersections);
+            break;
+          case 'face':
+            this.selectingFace(intersections);
+            break;
+          case 'mesh':
+            this.selectingMesh(intersections);
+            break;
+        }
       }
     }
   }
@@ -150,12 +150,12 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.camera.position.set(2, 2, 3);
     this.camera.lookAt(0, 0, 0);
 
-    // TODO: Do Sprites!
-    // https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
-    // const spritey = makeTextSprite( 'Henlo :)',
-    //   { fontsize: 24, borderColor: {r: 255, g: 0, b: 0, a: 1.0}, backgroundColor: {r: 255, g: 100, b: 100, a: 0.8}} );
-    // spritey.position.set(-85, 105, 55);
-    // this.scene.add( spritey );
+    this.labelRenderer = new CSS2DRenderer();
+    // this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    this.labelRenderer.domElement.style.pointerEvents = 'none';
+    this.labelRenderer.domElement.style.position = 'absolute';
+    this.labelRenderer.domElement.style.top = '0px';
+    document.body.appendChild(this.labelRenderer.domElement);
 
     requestAnimationFrame(this.render.bind(this));
   }
@@ -170,12 +170,14 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
+      this.labelRenderer.setSize(width, height);
       this.renderer.setSize(width, height, false);
     }
 
     this.controls.update();
     this.stats.update();
     this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));
   }
 }

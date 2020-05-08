@@ -3,8 +3,6 @@ import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as THREE from 'three';
 
 import {CoreService} from '../core.service';
-import {ItemObjList} from '../interfaces/itemObjList';
-import {SelectionTypes} from '../interfaces/selectionTypes';
 
 @Component({
   selector: 'app-side-bar',
@@ -13,7 +11,7 @@ import {SelectionTypes} from '../interfaces/selectionTypes';
 })
 export class SideBarComponent implements OnInit {
 
-  objects: ItemObjList[] = this.coreService.objects;
+  objects: THREE.Mesh[] = this.coreService.objects;
   selectionType = this.coreService.options.selectionType;
   selectionTypes: string[] = ['vertex', 'edge', 'face', 'mesh'];
 

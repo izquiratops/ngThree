@@ -5,9 +5,9 @@
     <div class="example-box" *ngFor="let object of objects" cdkDrag>
 
       <!-- TODO: Get this into a Component -->
-      <input [value]=object.mesh.name>
-      <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object.mesh)">
-        <mat-icon [ngClass]="{'disabled-icon': !object.mesh.visible}">visibility</mat-icon>
+      <input [value]=object.name>
+      <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object)">
+        <mat-icon [ngClass]="{'disabled-icon': !object.visible}">visibility</mat-icon>
       </button>
 
       <!-- --- -x- --- -->
