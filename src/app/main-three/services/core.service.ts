@@ -1,17 +1,8 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import {CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import {HelperObjects} from './interfaces/helperObjects';
 
-enum objectType {
-  mesh = 'mesh',
-  camera = 'camera',
-  light = 'light'
-}
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class CoreService {
   options = {
     selectionType: 'face',
@@ -20,16 +11,12 @@ export class CoreService {
     wireframeLinewidth: 3,
   };
 
-  objects: Array<THREE.Mesh> = [];
-  helperObjects: HelperObjects = {
-    triangle: null,
-    grid: null,
-    axes: null,
-  };
+  objects: THREE.Mesh[] = [];
+  helperObjects = [];
 
   constructor() { }
 
-  createLabel(label: string, translation = new THREE.Matrix4().makeTranslation(0, 0, 0)) {
+  createLabel(label: string) {
     const tagDiv = document.createElement( 'label' );
     tagDiv.className = label;
     tagDiv.textContent = label.charAt(0).toUpperCase() + label.slice(1);
@@ -40,6 +27,7 @@ export class CoreService {
     tagDiv.style.background = 'rgba(178, 219, 191, 0.5)';
 
     const tagLabel = new CSS2DObject( tagDiv );
+    tagLabel.name = 'objectLabel';
 
     return tagLabel;
   }
@@ -56,7 +44,6 @@ export class CoreService {
     const newObject = new THREE.Mesh(geometry, material);
     newObject.name = name;
     newObject.applyMatrix4(translation);
-    newObject.add(this.createLabel(name, translation));
 
     this.objects.push(newObject);
     return newObject;
@@ -72,23 +59,26 @@ export class CoreService {
       transparent: true,
     });
     const triangle = new THREE.Line(triangleGeo, triangleMat);
+    triangle.name = 'triangleHelper';
 
-    this.helperObjects.triangle = triangle;
+    this.helperObjects.push(triangle);
     return triangle;
   }
 
   createGrid(): THREE.GridHelper {
     const grid = new THREE.GridHelper( 10, 20 );
+    grid.name = 'gridHelper';
 
-    this.helperObjects.grid = grid;
+    this.helperObjects.push(grid);
     return grid;
   }
 
   createAxes(): THREE.AxesHelper {
-    const axesHelper = new THREE.AxesHelper( 0.5 );
-    (axesHelper.material as THREE.LineBasicMaterial).linewidth = 4;
+    const axes = new THREE.AxesHelper( 0.5 );
+    (axes.material as THREE.LineBasicMaterial).linewidth = 4;
+    axes.name = 'axesHelper';
 
-    this.helperObjects.axes = axesHelper;
-    return axesHelper;
+    this.helperObjects.push(axes);
+    return axes;
   }
 }

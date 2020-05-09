@@ -28,13 +28,22 @@
   padding: 0.2rem 1rem;
   margin-bottom: 6px;
   border-radius: 4px;
+  background-color: white;
 
   input {
     margin-right: 1rem;
     background-color: rgba(0, 0, 0, 0);
-    color: white;
+    color: black;
     border: none;
     outline: none;
+  }
+
+  mat-icon {
+    color: black;
+
+    &.disabled-icon {
+      color: rgba(0, 0, 0, 0.15);
+    }
   }
 }
 
@@ -44,17 +53,7 @@
   margin-top: auto;
 }
 
-.disabled-icon {
-  color: #333;
-}
-
 .cdk-drag-preview {
-  color: black;
-  background-color: white;
-  input {
-    color: black;
-  }
-
   box-sizing: border-box;
   border-radius: 4px;
   box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),

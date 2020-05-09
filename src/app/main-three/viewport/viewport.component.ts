@@ -1,10 +1,11 @@
-import {Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit} from '@angular/core';
-import {CoreService} from '../core.service';
+import { Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit } from '@angular/core';
+import { CoreService } from '../services/core.service';
+import { SelectionService } from '../services/selection.service';
+
 import * as THREE from 'three';
-import {CSS2DObject, CSS2DRenderer} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
-import {Vector4} from 'three';
 
 @Component({
   selector: 'app-viewport',
@@ -13,8 +14,9 @@ import {Vector4} from 'three';
 })
 export class ViewportComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('canvas', {static: false}) canvasElement: ElementRef;
+  @ViewChild('canvas', { static: false }) canvasElement: ElementRef;
   canvas: HTMLCanvasElement;
+  statsEnabled = false;
 
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -28,6 +30,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
 
   constructor(
     private coreService: CoreService,
+    private selectionMethods: SelectionService,
   ) {
   }
 
@@ -40,24 +43,19 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.raycaster = new THREE.Raycaster();
 
     // Debug stats
-    this.stats = Stats();
-    document.body.appendChild(this.stats.dom);
+    if (this.statsEnabled) {
+      this.stats = Stats();
+      document.body.appendChild(this.stats.dom);
+    }
 
     // Setup Initial Objects
     this.scene.add(this.coreService.createTriangle());
     this.scene.add(this.coreService.createGrid());
     this.scene.add(this.coreService.createAxes());
 
-    const initTrans = new THREE.Matrix4().makeTranslation(0.75, 0, 0);
+    const initTrans = new THREE.Matrix4().makeTranslation(0, 0, 0);
     const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Init Cube', initTrans);
     this.scene.add(initCube);
-
-    // Testing async cube.
-    setTimeout(() => {
-      const asyncTrans = new THREE.Matrix4().makeTranslation(-0.75, 0, 0);
-      const asyncCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Async Cube', asyncTrans);
-      this.scene.add(asyncCube);
-    }, 5000);
 
     console.debug('Objects Array', this.coreService.objects);
   }
@@ -68,43 +66,7 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
-  selectingVertex(intersections): void {
-    console.debug('Vertex selection case', intersections);
-  }
-
-  selectingEdge(intersections): void {
-    console.debug('Edge selection case', intersections);
-  }
-
-  selectingFace(intersections): void {
-    // Triangle obj which show the selected Face
-    const triangle = this.coreService.helperObjects.triangle;
-    const object = intersections[0].object;
-    const face = intersections[0].face;
-
-    const trianglePosition = (triangle.geometry as any).attributes.position;
-    const objectPosition = (object as any).geometry.attributes.position;
-
-    /**
-     * https://threejs.org/docs/#api/en/core/BufferAttribute
-     * 'copyAt' copy a vector from a bufferAttribute[index2] to a Array[index1].
-     * 'applyMatrix4' applies matrix to every Vector3 element.
-     */
-    trianglePosition.copyAt(0, objectPosition, face.a);
-    trianglePosition.copyAt(1, objectPosition, face.b);
-    trianglePosition.copyAt(2, objectPosition, face.c);
-    trianglePosition.copyAt(3, objectPosition, face.a);
-    triangle.geometry.applyMatrix4(object.matrix);
-
-    triangle.visible = true;
-  }
-
-  selectingMesh(intersections): void {
-    // const object: THREE.Mesh = intersections[0].object;
-    // const objectPosition = object.position;
-    console.debug('Object selection case', intersections);
-  }
-
+  // Left-Click mouse Event
   onMouseDown(event) {
     if (event.button === 0) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -112,26 +74,27 @@ export class ViewportComponent implements OnInit, AfterViewInit {
       if (intersections.length > 0) {
         switch (this.coreService.options.selectionType) {
           case 'vertex':
-            this.selectingVertex(intersections);
+            this.selectionMethods.selectingVertex(intersections);
             break;
           case 'edge':
-            this.selectingEdge(intersections);
+            this.selectionMethods.selectingEdge(intersections);
             break;
           case 'face':
-            this.selectingFace(intersections);
+            this.selectionMethods.selectingFace(intersections);
             break;
           case 'mesh':
-            this.selectingMesh(intersections);
+            this.selectionMethods.selectingMesh(intersections);
             break;
         }
       }
     }
   }
 
+  // Key A Event
   @HostListener('document:keydown.a', [])
   onKeydownHandler() {
     // TODO: There's no such a thing like 'selection' implemented yet, just a sad sad triangle
-    const triangle = this.coreService.helperObjects.triangle;
+    const triangle = this.coreService.helperObjects.find(element => element.name === 'triangleHelper');
     triangle.visible = false;
   }
 
@@ -160,10 +123,6 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     requestAnimationFrame(this.render.bind(this));
   }
 
-  // TODO: Transforms like Translation
-  // https://threejsfundamentals.org/threejs/lessons/threejs-optimize-lots-of-objects.html
-  // this.cube.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.5));
-
   private render(): void {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
@@ -175,9 +134,9 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     }
 
     this.controls.update();
-    this.stats.update();
     this.renderer.render(this.scene, this.camera);
     this.labelRenderer.render(this.scene, this.camera);
+    if (this.statsEnabled) this.stats.update();
     requestAnimationFrame(this.render.bind(this));
   }
 }

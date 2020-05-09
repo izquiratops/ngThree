@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as THREE from 'three';
 
-import {CoreService} from '../core.service';
+import {CoreService} from '../services/core.service';
 
 @Component({
   selector: 'app-side-bar',
   templateUrl: './side-bar.component.html',
   styleUrls: ['./side-bar.component.scss']
 })
-export class SideBarComponent implements OnInit {
+export class SideBarComponent {
 
   objects: THREE.Mesh[] = this.coreService.objects;
   selectionType = this.coreService.options.selectionType;
@@ -18,9 +18,6 @@ export class SideBarComponent implements OnInit {
   constructor(
     private coreService: CoreService,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   onChange(event) {
     this.coreService.options.selectionType = event;

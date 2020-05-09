@@ -17,6 +17,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { SideBarComponent } from './main-three/side-bar/side-bar.component';
 import { ViewportComponent } from './main-three/viewport/viewport.component';
 
+import { CoreService } from './main-three/services/core.service';
+import { SelectionService } from './main-three/services/selection.service';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -28,8 +31,6 @@ import { ViewportComponent } from './main-three/viewport/viewport.component';
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    // FormsModule,
-    // ReactiveFormsModule,
     DragDropModule,
     MatListModule,
     MatButtonModule,
@@ -37,7 +38,10 @@ import { ViewportComponent } from './main-three/viewport/viewport.component';
     MatSelectModule
   ],
   exports: [],
-  providers: [],
+  providers: [
+    CoreService,
+    SelectionService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
