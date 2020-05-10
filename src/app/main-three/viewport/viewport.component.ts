@@ -1,22 +1,24 @@
-import { Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, HostListener, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CoreService } from '../services/core.service';
 import { SelectionService } from '../services/selection.service';
 
 import * as THREE from 'three';
-import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import Stats from 'three/examples/jsm/libs/stats.module';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+// import Stats from 'three/examples/jsm/libs/stats.module';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-viewport',
   templateUrl: './viewport.component.html',
   styleUrls: ['./viewport.component.scss']
 })
-export class ViewportComponent implements OnInit, AfterViewInit {
+export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('canvas', { static: false }) canvasElement: ElementRef;
   canvas: HTMLCanvasElement;
-  statsEnabled = false;
+  subscription: Subscription = new Subscription();
 
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -25,13 +27,17 @@ export class ViewportComponent implements OnInit, AfterViewInit {
 
   mouse: THREE.Vector2;
   raycaster: THREE.Raycaster;
-  controls: OrbitControls;
-  stats: Stats;
+  orbit: OrbitControls;
+  // TODO: https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_transform.html
+  gizmo: TransformControls;
 
   constructor(
     private coreService: CoreService,
     private selectionMethods: SelectionService,
   ) {
+    this.subscription.add(
+      this.coreService.renderSignal$.subscribe(() => this.render())
+    );
   }
 
   ngOnInit(): void {
@@ -42,19 +48,13 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.mouse = new THREE.Vector2(1, 1);
     this.raycaster = new THREE.Raycaster();
 
-    // Debug stats
-    if (this.statsEnabled) {
-      this.stats = Stats();
-      document.body.appendChild(this.stats.dom);
-    }
-
     // Setup Initial Objects
     this.scene.add(this.coreService.createTriangle());
     this.scene.add(this.coreService.createGrid());
     this.scene.add(this.coreService.createAxes());
 
-    const initTrans = new THREE.Matrix4().makeTranslation(0, 0, 0);
-    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Init Cube', initTrans);
+    const origin = new THREE.Matrix4().makeTranslation(0, 0, 0);
+    const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Init Cube', origin);
     this.scene.add(initCube);
 
     console.debug('Objects Array', this.coreService.objects);
@@ -66,7 +66,6 @@ export class ViewportComponent implements OnInit, AfterViewInit {
     this.mouse.y = -(event.clientY / this.canvas.clientHeight) * 2 + 1;
   }
 
-  // Left-Click mouse Event
   onMouseDown(event) {
     if (event.button === 0) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -83,60 +82,75 @@ export class ViewportComponent implements OnInit, AfterViewInit {
             this.selectionMethods.selectingFace(intersections);
             break;
           case 'mesh':
+            // TODO: Add Outline Selection from https://stemkoski.github.io/Three.js/Outline.html
             this.selectionMethods.selectingMesh(intersections);
             break;
         }
+        this.render();
       }
     }
   }
 
-  // Key A Event
   @HostListener('document:keydown.a', [])
   onKeydownHandler() {
     // TODO: There's no such a thing like 'selection' implemented yet, just a sad sad triangle
     const triangle = this.coreService.helperObjects.find(element => element.name === 'triangleHelper');
     triangle.visible = false;
+    this.render();
+  }
+
+  @HostListener('window:resize', [])
+  onWindowResize() {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height, false);
+    this.labelRenderer.setSize(width, height);
+
+    this.render();
   }
 
   ngAfterViewInit(): void {
+    this.canvas = this.canvasElement.nativeElement;
+
     this.renderer = new THREE.WebGLRenderer({
-      canvas: (this.canvasElement.nativeElement as HTMLCanvasElement),
+      canvas: this.canvas,
       antialias: true,
       alpha: true
     });
 
-    this.canvas = this.renderer.domElement;
     const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
     this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 100);
 
-    this.controls = new OrbitControls(this.camera, this.canvas);
+    this.orbit = new OrbitControls(this.camera, this.canvas);
+    this.orbit.update();
+    this.gizmo = new TransformControls(this.camera, this.canvas);
+    this.scene.add(this.gizmo);
+
     this.camera.position.set(2, 2, 3);
     this.camera.lookAt(0, 0, 0);
 
     this.labelRenderer = new CSS2DRenderer();
-    // this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
     this.labelRenderer.domElement.style.pointerEvents = 'none';
     this.labelRenderer.domElement.style.position = 'absolute';
     this.labelRenderer.domElement.style.top = '0px';
     document.body.appendChild(this.labelRenderer.domElement);
 
-    requestAnimationFrame(this.render.bind(this));
+    this.orbit.addEventListener('change', this.render.bind(this));
+    this.gizmo.addEventListener('change', this.render.bind(this));
+
+    this.render();
+    this.onWindowResize();
   }
 
   private render(): void {
-    const width = this.canvas.clientWidth;
-    const height = this.canvas.clientHeight;
-    if (this.canvas.width !== width || this.canvas.height !== height) {
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-      this.labelRenderer.setSize(width, height);
-      this.renderer.setSize(width, height, false);
-    }
-
-    this.controls.update();
     this.renderer.render(this.scene, this.camera);
     this.labelRenderer.render(this.scene, this.camera);
-    if (this.statsEnabled) this.stats.update();
-    requestAnimationFrame(this.render.bind(this));
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }

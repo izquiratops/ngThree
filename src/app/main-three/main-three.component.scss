@@ -7,6 +7,11 @@
   height: 100%;
 }
 
-.wrapper > * {
-  flex: 1 1 auto;
+app-viewport {
+  flex-grow: 1;
+}
+
+app-side-bar {
+  flex-shrink: 1;
+  width: 300px;
 }

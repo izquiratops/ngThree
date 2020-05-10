@@ -6,7 +6,7 @@
 
       <!-- TODO: Get this into a Component -->
       <input [value]=object.name>
-      <button mat-icon-button aria-label="Wireframe" (click)="toggleWireframe(object)">
+      <button mat-icon-button aria-label="Wireframe" (click)="toggleVisibility(object)">
         <mat-icon [ngClass]="{'disabled-icon': !object.visible}">visibility</mat-icon>
       </button>
 

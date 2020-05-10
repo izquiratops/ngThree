@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import {CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class CoreService {
@@ -11,6 +12,7 @@ export class CoreService {
     wireframeLinewidth: 3,
   };
 
+  renderSignal$: Subject<any> = new Subject();
   objects: THREE.Mesh[] = [];
   helperObjects = [];
 

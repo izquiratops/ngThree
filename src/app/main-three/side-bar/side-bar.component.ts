@@ -27,9 +27,9 @@ export class SideBarComponent {
     moveItemInArray(this.objects, event.previousIndex, event.currentIndex);
   }
 
-  // TODO: Add Outline Selection from https://stemkoski.github.io/Three.js/Outline.html
-  toggleWireframe(mesh: THREE.Mesh): void {
+  toggleVisibility(mesh: THREE.Mesh): void {
     const currentValue = mesh.visible;
     mesh.visible = !currentValue;
+    this.coreService.renderSignal$.next();
   }
 }

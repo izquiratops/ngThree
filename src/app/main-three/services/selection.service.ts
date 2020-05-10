@@ -17,7 +17,8 @@ export class SelectionService {
     
     selectingFace(intersections): void {
         // Triangle obj which show the selected Face
-        const triangle = this.coreService.helperObjects.find(element => element.name === 'triangleHelper');
+        const triangle = this.coreService.helperObjects
+            .find(element => element.name === 'triangleHelper');
         const object = intersections[0].object;
         const face = intersections[0].face;
     

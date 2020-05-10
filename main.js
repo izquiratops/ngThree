@@ -7,7 +7,8 @@ let win;
 Menu.setApplicationMenu(null)
 
 function createWindow() {
-  win = new BrowserWindow({width: 800, height: 600});
+  win = new BrowserWindow({width: 1280, height: 720});
+  // win.maximize();
 
   // Loads the dist folder from Angular
   win.loadURL(
@@ -18,7 +19,7 @@ function createWindow() {
     })
   );
 
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
   win.on("closed", () => {
     win = null;
