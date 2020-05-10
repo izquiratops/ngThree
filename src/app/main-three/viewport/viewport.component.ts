@@ -28,7 +28,6 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
   mouse: THREE.Vector2;
   raycaster: THREE.Raycaster;
   orbit: OrbitControls;
-  // TODO: https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_transform.html
   gizmo: TransformControls;
 
   constructor(
@@ -56,8 +55,6 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     const origin = new THREE.Matrix4().makeTranslation(0, 0, 0);
     const initCube = this.coreService.createInstance(new THREE.BoxBufferGeometry(), 'Init Cube', origin);
     this.scene.add(initCube);
-
-    console.debug('Objects Array', this.coreService.objects);
   }
 
   onMouseMove(event) {
@@ -76,8 +73,6 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
             this.selectionMethods.selectingFace(intersections);
             break;
           case 'mesh':
-            // TODO: Add Outline Selection
-            // https://github.com/takahirox/takahirox.github.io/blob/master/three.js.mmdeditor/examples/webgl_postprocessing_outline.html
             this.selectionMethods.selectingMesh(intersections, this.gizmo);
             break;
         }
@@ -86,21 +81,25 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Debug Log of the current Scene
+  @HostListener('document:keydown.alt.q', [])
+  showSceneLog() {
+    console.debug(this.scene);
+  }
+
   @HostListener('document:keydown.a', [])
   onUnselect() {
-    // Hide Triangle
     const triangle = this.coreService.helperObjects
       .find(element => element.name === 'triangleHelper');
     if (triangle) triangle.visible = false;
-    
-    // TODO: Unselect Gizmo & Label
-    // const selectedObject = this.gizmo.object;
-    // const label = selectedObject.children.find(element => element.name === 'objectLabel');
-    // this.scene.remove(label);
-    // selectedObject.children.length = 0;
-    // console.debug(selectedObject);
 
-    this.gizmo.detach();
+    const selectedObject = this.gizmo.object;
+    if (selectedObject) {
+      const label = selectedObject.children.find(element => element.name === 'objectLabel');
+      selectedObject.remove(label);
+      this.gizmo.detach();
+    }
+
     this.render();
   }
 
@@ -135,9 +134,7 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     // TODO: Snap on grid
     // https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_transform.html
     this.gizmo = new TransformControls(this.camera, this.canvas);
-    this.gizmo.addEventListener('dragging-changed', (event) => {
-      this.orbit.enabled = !event.value;
-    });
+    this.gizmo.addEventListener('dragging-changed', event => this.orbit.enabled = !event.value);
     this.scene.add(this.gizmo);
 
     this.camera.position.set(2, 2, 3);

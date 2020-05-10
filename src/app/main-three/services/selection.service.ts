@@ -34,13 +34,12 @@ export class SelectionService {
 
     selectingMesh(intersections, gizmo: TransformControls): void {
         const object = intersections[0].object;
-        gizmo.attach(object);
+        const found = object.children.find(element => element.name === 'objectLabel');
 
-
-        const found = object.children.map(element => element.name === 'objectLabel');
-        if (found.includes(true)) {
-            console.warn('Object already labeled');
+        if (found) {
+            console.debug('Object already selected');
         } else {
+            gizmo.attach(object);
             object.add(this.coreService.createLabel(object.name));
         }
     }

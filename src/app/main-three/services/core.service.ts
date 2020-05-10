@@ -41,6 +41,8 @@ export class CoreService {
                  translation = new THREE.Matrix4().makeTranslation(0, 0, 0)): THREE.Mesh {
     const material = new THREE.MeshNormalMaterial({
       wireframe: false,
+      // TODO: Width not working on Windows
+      // https://dustinpfister.github.io/2018/11/07/threejs-line-fat-width/
       wireframeLinewidth: this.options.wireframeLinewidth,
       polygonOffset: true,
       polygonOffsetFactor: 1,
