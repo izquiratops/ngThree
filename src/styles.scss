@@ -1,5 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
+@import '~@angular/material/theming';
+
+// TODO: Titlebar 
+// https://stackoverflow.com/questions/46222035/set-color-of-windows-titlebar-electron-js
+
+// https://material.angular.io/guide/typography
+$custom-typography: mat-typography-config(
+  $font-family: 'Rubik'
+);
+@include mat-core($custom-typography);
 
 html {
   box-sizing: border-box;
