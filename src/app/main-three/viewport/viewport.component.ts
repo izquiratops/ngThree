@@ -35,9 +35,9 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     private coreService: CoreService,
     private selectionMethods: SelectionService,
   ) {
-    this.subscription.add(
-      this.coreService.renderSignal$.subscribe(() => this.render())
-    );
+    this.subscription
+      .add(this.coreService.render$.subscribe(() => this.render()))
+      .add(this.coreService.selectionType$.subscribe(() => this.onUnselect()));
   }
 
   ngOnInit(): void {
@@ -72,30 +72,35 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
       const intersections = this.raycaster.intersectObjects(this.coreService.objects);
       if (intersections.length > 0) {
         switch (this.coreService.options.selectionType) {
-          case 'vertex':
-            this.selectionMethods.selectingVertex(intersections);
-            break;
-          case 'edge':
-            this.selectionMethods.selectingEdge(intersections);
-            break;
           case 'face':
             this.selectionMethods.selectingFace(intersections);
             break;
           case 'mesh':
-            // TODO: Add Outline Selection from https://stemkoski.github.io/Three.js/Outline.html
-            this.selectionMethods.selectingMesh(intersections);
+            // TODO: Add Outline Selection
+            // https://github.com/takahirox/takahirox.github.io/blob/master/three.js.mmdeditor/examples/webgl_postprocessing_outline.html
+            this.selectionMethods.selectingMesh(intersections, this.gizmo);
             break;
         }
-        this.render();
       }
+      this.render();
     }
   }
 
   @HostListener('document:keydown.a', [])
-  onKeydownHandler() {
-    // TODO: There's no such a thing like 'selection' implemented yet, just a sad sad triangle
-    const triangle = this.coreService.helperObjects.find(element => element.name === 'triangleHelper');
-    triangle.visible = false;
+  onUnselect() {
+    // Hide Triangle
+    const triangle = this.coreService.helperObjects
+      .find(element => element.name === 'triangleHelper');
+    if (triangle) triangle.visible = false;
+    
+    // TODO: Unselect Gizmo & Label
+    // const selectedObject = this.gizmo.object;
+    // const label = selectedObject.children.find(element => element.name === 'objectLabel');
+    // this.scene.remove(label);
+    // selectedObject.children.length = 0;
+    // console.debug(selectedObject);
+
+    this.gizmo.detach();
     this.render();
   }
 
@@ -126,7 +131,13 @@ export class ViewportComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.orbit = new OrbitControls(this.camera, this.canvas);
     this.orbit.update();
+
+    // TODO: Snap on grid
+    // https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_transform.html
     this.gizmo = new TransformControls(this.camera, this.canvas);
+    this.gizmo.addEventListener('dragging-changed', (event) => {
+      this.orbit.enabled = !event.value;
+    });
     this.scene.add(this.gizmo);
 
     this.camera.position.set(2, 2, 3);

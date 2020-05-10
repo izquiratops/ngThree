@@ -6,15 +6,18 @@ import { Subject } from 'rxjs';
 @Injectable()
 export class CoreService {
   options = {
-    selectionType: 'face',
+    selectionType: 'mesh',
+    labelColor: 'rgba(255, 22, 84, 1.0)',
+    labelBackgroundColor: 'rgba(38, 28, 21, 0.65)',
     wireframe: true,
     wireframeColor: 0x00FF00,
     wireframeLinewidth: 3,
   };
 
-  renderSignal$: Subject<any> = new Subject();
+  render$: Subject<void> = new Subject();
+  selectionType$: Subject<void> = new Subject();
   objects: THREE.Mesh[] = [];
-  helperObjects = [];
+  helperObjects: (THREE.Line | THREE.GridHelper | THREE.AxesHelper)[] = [];
 
   constructor() { }
 
@@ -25,8 +28,8 @@ export class CoreService {
     tagDiv.style.borderRadius = '6px';
     tagDiv.style.marginTop = '-1em';
     tagDiv.style.padding = '0.5em';
-    tagDiv.style.color = '#FF1654';
-    tagDiv.style.background = 'rgba(178, 219, 191, 0.5)';
+    tagDiv.style.color = this.options.labelColor;
+    tagDiv.style.background = this.options.labelBackgroundColor;
 
     const tagLabel = new CSS2DObject( tagDiv );
     tagLabel.name = 'objectLabel';
@@ -58,7 +61,7 @@ export class CoreService {
     const triangleMat = new THREE.LineBasicMaterial({
       color: this.options.wireframeColor,
       linewidth: this.options.wireframeLinewidth,
-      transparent: true,
+      transparent: true
     });
     const triangle = new THREE.Line(triangleGeo, triangleMat);
     triangle.name = 'triangleHelper';
@@ -75,8 +78,8 @@ export class CoreService {
     return grid;
   }
 
-  createAxes(): THREE.AxesHelper {
-    const axes = new THREE.AxesHelper( 0.5 );
+  createAxes(size: number = 1.25): THREE.AxesHelper {
+    const axes = new THREE.AxesHelper(size);
     (axes.material as THREE.LineBasicMaterial).linewidth = 4;
     axes.name = 'axesHelper';
 

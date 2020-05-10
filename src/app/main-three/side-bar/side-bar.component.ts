@@ -3,6 +3,7 @@ import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as THREE from 'three';
 
 import {CoreService} from '../services/core.service';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-side-bar',
@@ -13,14 +14,15 @@ export class SideBarComponent {
 
   objects: THREE.Mesh[] = this.coreService.objects;
   selectionType = this.coreService.options.selectionType;
-  selectionTypes: string[] = ['vertex', 'edge', 'face', 'mesh'];
+  selectionTypes: string[] = ['face', 'mesh'];
 
   constructor(
     private coreService: CoreService,
   ) { }
 
-  onChange(event) {
-    this.coreService.options.selectionType = event;
+  onChange(value) {
+    this.coreService.options.selectionType = value;
+    this.coreService.selectionType$.next();
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -30,6 +32,6 @@ export class SideBarComponent {
   toggleVisibility(mesh: THREE.Mesh): void {
     const currentValue = mesh.visible;
     mesh.visible = !currentValue;
-    this.coreService.renderSignal$.next();
+    this.coreService.render$.next();
   }
 }
