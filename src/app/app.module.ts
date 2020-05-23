@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { MainThreeComponent } from './main-three/main-three.component';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatListModule } from '@angular/material/list';
