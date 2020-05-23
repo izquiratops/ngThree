@@ -1,4 +1,4 @@
-import {THREE} from '@angular/cdk/keycodes';
+// import {THREE} from '@angular/cdk/keycodes';
 
 export interface HelperObjects {
   triangle: THREE.Line;
